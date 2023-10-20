@@ -1,3 +1,4 @@
+import 'package:fktv/qrcode.dart';
 import 'package:fktv/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -70,7 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
             const MyTopBar(
               title: 'hello',
             ),
-            TextButton(onPressed: play, child: Text(playing ? 'pause' : 'play'))
+            TextButton(
+                onPressed: play, child: Text(playing ? 'pause' : 'play')),
+            ScanQrcode()
           ],
         ));
   }
