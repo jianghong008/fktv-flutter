@@ -1,14 +1,22 @@
+import 'dart:convert';
 import 'dart:io';
+
+import 'utils/web_spider.dart';
 
 class AppHttpServer {
   late final HttpServer _server;
   String ip = '127.0.0.1';
   start() async {
+    WebSpider.init();
     ip = await getIP();
     _server = await HttpServer.bind(InternetAddress.anyIPv4, 8848);
     print('server is running');
-    _server.forEach((req) {
-      req.response.write('hello');
+    _server.forEach((req) async {
+      try {
+        await handle(req);
+      } catch (e) {
+        print(e);
+      }
       req.response.close();
     });
   }
@@ -36,5 +44,13 @@ class AppHttpServer {
       }
     }
     return ip;
+  }
+
+  handle(HttpRequest req) async {
+    var str = await WebSpider.hkMvFromVID('8131137025326765671');
+    req.response.headers.contentType = ContentType.json;
+    print(jsonDecode(str)['encrptedVideoMeta']);
+
+    req.response.write(str);
   }
 }
