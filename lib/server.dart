@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'utils/app_state.dart';
 import 'utils/web_spider.dart';
 
 class AppHttpServer {
   late final HttpServer _server;
   String ip = '127.0.0.1';
+  late Function onMusicChane;
   start() async {
     WebSpider.init();
     ip = await getIP();
@@ -49,8 +50,16 @@ class AppHttpServer {
   handle(HttpRequest req) async {
     var str = await WebSpider.hkMvFromVID('8131137025326765671');
     req.response.headers.contentType = ContentType.json;
-    print(jsonDecode(str)['encrptedVideoMeta']);
-
+    // print(jsonDecode(str)['encrptedVideoMeta']);
+    // api
+    if (RegExp('^/api').hasMatch(req.uri.path)) {
+      next();
+    }
     req.response.write(str);
+  }
+
+  next() {
+    // AppState.next();
+    onMusicChane.call(1);
   }
 }

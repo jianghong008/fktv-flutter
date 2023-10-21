@@ -13,7 +13,7 @@ class WebSpider {
   static Future<String> loadUrl(
       String path, Map<String, dynamic>? q, bool init) async {
     HttpClientRequest req = await client.getUrl(Uri.https(host, path, q));
-    print(Uri.https(host, path, q));
+    // print(Uri.https(host, path, q));
     setHeaders(req);
     HttpClientResponse res = await req.close();
     cookies = res.cookies;

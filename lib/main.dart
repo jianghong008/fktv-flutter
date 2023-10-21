@@ -38,12 +38,17 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _server = AppHttpServer();
+    _server.onMusicChane = onMusicChange;
     _server.start();
     controller.addListener(() {
       print('init');
     });
 
     controller.initialize();
+  }
+
+  void onMusicChange(arg) {
+    print(arg);
   }
 
   void play() {
@@ -67,13 +72,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: []);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     return Scaffold(
         backgroundColor: Colors.black,
         body: Stack(
           children: [
             VideoPlayer(controller),
-             MyTopBar(
+            MyTopBar(
               title: _server.ip,
             ),
             TextButton(
