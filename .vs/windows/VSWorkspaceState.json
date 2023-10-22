@@ -1,0 +1,8 @@
+{
+  "OutputFoldersPerTargetSystem": {
+    "本地计算机": [
+      "windows\\out\\build\\x64-Debug",
+      "windows\\out\\install\\x64-Debug"
+    ]
+  }
+}

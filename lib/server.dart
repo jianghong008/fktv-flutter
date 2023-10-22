@@ -1,14 +1,18 @@
-import 'dart:convert';
 import 'dart:io';
+import 'package:video_player/video_player.dart';
+
 import 'utils/app_state.dart';
-import 'utils/web_spider.dart';
+import 'utils/net_utils.dart';
+
+var apiJson = {'code': 0, 'msg': 'ok', 'data': null};
 
 class AppHttpServer {
   late final HttpServer _server;
   String ip = '127.0.0.1';
   late Function onMusicChane;
-  start() async {
-    WebSpider.init();
+  VideoPlayerController? curPlayer;
+  double volume = 1;
+  Future<void> start() async {
     ip = await getIP();
     _server = await HttpServer.bind(InternetAddress.anyIPv4, 8848);
     print('server is running');
@@ -26,40 +30,79 @@ class AppHttpServer {
     await _server.close();
   }
 
-  getIP() async {
-    List<NetworkInterface> list = await NetworkInterface.list();
-    List<String> ips = [];
-    for (NetworkInterface net in list) {
-      for (var ip in net.addresses) {
-        if (ip.type == InternetAddressType.IPv4 &&
-            ip.address.isNotEmpty &&
-            ip.address != '127.0.0.1') {
-          ips.add(ip.address);
-        }
-      }
-    }
-    String ip = ips.first.isEmpty ? '127.0.0.1' : ips.first;
-    for (String temp in ips) {
-      if (temp.contains('192.')) {
-        ip = temp;
-      }
-    }
-    return ip;
-  }
-
   handle(HttpRequest req) async {
-    var str = await WebSpider.hkMvFromVID('8131137025326765671');
     req.response.headers.contentType = ContentType.json;
-    // print(jsonDecode(str)['encrptedVideoMeta']);
     // api
     if (RegExp('^/api').hasMatch(req.uri.path)) {
-      next();
+      String memberName = req.uri.path.replaceAll(RegExp(r'(/api|/)'), '');
+      switch (memberName) {
+        case 'next':
+          next(req);
+          break;
+        case 'add':
+          add(req);
+          break;
+        case 'remove':
+          remove(req);
+          break;
+        case 'list':
+          list(req);
+          break;
+        case 'mute':
+          mute(req);
+          break;
+        default:
+          req.response.write('404');
+      }
+      apiJson['data'] = null;
+      apiJson['code'] = 1;
+      apiJson['msg'] = 'ok';
+      return;
     }
-    req.response.write(str);
+    req.response.write('hello');
   }
 
-  next() {
-    // AppState.next();
-    onMusicChane.call(1);
+  VideoPlayerController createPlayer(String url) {
+    var player =
+        VideoPlayerController.networkUrl(Uri.parse(httpsGenerate(url)));
+    curPlayer = player;
+    return player;
+  }
+
+  void next(HttpRequest req) {
+    try {
+      onMusicChane.call(AppState.next());
+      req.response.write('切歌');
+    } catch (e) {
+      apiJson['msg'] = '请先添加歌曲';
+      apiJson['code'] = 1;
+      req.response.write(apiJson);
+    }
+  }
+
+  void add(HttpRequest req) {
+    req.response.write('添加');
+  }
+
+  void remove(HttpRequest req) {}
+  void list(HttpRequest req) {
+    apiJson['data'] = AppState.musics;
+    apiJson['code'] = 0;
+    req.response.write(apiJson);
+  }
+
+  void mute(HttpRequest req) {
+    if (req.method == 'POST') {
+      apiJson['code'] = 0;
+      req.response.write(apiJson);
+    } else {
+      apiJson['code'] = 1;
+      apiJson['msg'] = '请求不允许';
+      req.response.write(apiJson);
+    }
+    if (curPlayer != null) {
+      volume = volume > 0 ? 0 : 1;
+      curPlayer!.setVolume(volume);
+    }
   }
 }

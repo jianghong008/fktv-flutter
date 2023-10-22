@@ -14,7 +14,7 @@ class TopBarState extends State<MyTopBar> {
     return Padding(
       padding: const EdgeInsets.only(top: 30),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(widget.title, style: const TextStyle(color: Colors.white))
+        Text(widget.title, style: const TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold))
       ]),
     );
   }
