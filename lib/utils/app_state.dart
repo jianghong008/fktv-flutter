@@ -16,6 +16,9 @@ class Music {
       required this.url,
       required this.isVideo,
       this.lyric});
+  Music clone(){
+    return Music(id: id, duration: duration, name: name, cover: cover, url: url, isVideo: isVideo);
+  }
 }
 
 class AppState {
@@ -33,6 +36,8 @@ class AppState {
     if (musics.isEmpty) {
       throw Error();
     }
-    return musics.last;
+    Music m = musics.first.clone();
+    musics.removeAt(0);
+    return m;
   }
 }
