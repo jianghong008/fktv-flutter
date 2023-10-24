@@ -38,6 +38,7 @@ dependencies:
   video_player: ^2.7.2
   pretty_qr_code: ^3.0.0
   crypto: ^3.0.3
+  flutter_lyric: ^2.0.4+6
 
 dev_dependencies:
   flutter_test:

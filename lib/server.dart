@@ -13,7 +13,9 @@ class AppHttpServer {
   VideoPlayerController? curPlayer;
   double volume = 1;
   Future<void> start() async {
+    init();
     ip = await getIP();
+
     _server = await HttpServer.bind(InternetAddress.anyIPv4, 8848);
     print('server is running');
     _server.forEach((req) async {
@@ -28,6 +30,21 @@ class AppHttpServer {
 
   stop() async {
     await _server.close();
+  }
+
+  void init() async {
+    String lyric = await File('/sdcard/Documents/lyric.txt').readAsString();
+
+    AppState.add(Music(
+        id: 376199,
+        duration: 317490,
+        name: '海阔天空',
+        cover:
+            'http://p1.music.126.net/S8InCa4o-pFJszhUvI-NPQ==/3247957351196805.jpg',
+        url:
+            'http://vodkgeyttp8.vod.126.net/cloudmusic/IGQwMDQwIDVkICBgNDQhIA==/mv/376199/5508b93dd0abdefe41ce48d54540aca6.mp4?wsSecret=12bedf80c248e6ff9b08ca47f8cb8099&wsTime=1697965608',
+        isVideo: false,
+        lyric: lyric));
   }
 
   handle(HttpRequest req) async {
@@ -71,6 +88,7 @@ class AppHttpServer {
 
   void next(HttpRequest req) {
     try {
+      AppState.next();
       onMusicChane.call(AppState.next());
       req.response.write('切歌');
     } catch (e) {

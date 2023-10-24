@@ -1,3 +1,4 @@
+import 'package:fktv/player.dart';
 import 'package:fktv/qrcode.dart';
 import 'package:fktv/top_bar.dart';
 import 'package:fktv/utils/app_state.dart';
@@ -34,6 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Music? music;
   String serverIp = '127.0.0.1';
   String playerError = '';
+  MediaPlayerController player = MediaPlayerController();
   var playing = false;
   late AppHttpServer _server;
   var controller = VideoPlayerController.asset('');
@@ -56,13 +58,14 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       music = m;
       if (m != null) {
-        controller.removeListener(() {});
-        controller.dispose();
-        controller = _server.createPlayer(m.url);
-        controller.addListener(() {
-          setState(() {});
-        });
-        initPlayer();
+        // controller.removeListener(() {});
+        // controller.dispose();
+        // controller = _server.createPlayer(m.url);
+        // controller.addListener(() {
+        //   setState(() {});
+        // });
+        // initPlayer();
+        player.setMedia(m);
       }
     });
   }
@@ -116,12 +119,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     allowScrubbing: false,
                     padding: const EdgeInsets.only(top: 0),
                   ),
-            MyTopBar(
-              title: playerTitle,
-            ),
-            TextButton(
-                onPressed: play, child: Text(playing ? 'pause' : 'play')),
-            const ScanQrcode()
+            // MyTopBar(
+            //   title: playerTitle,
+            // ),
+            //const ScanQrcode(),
+            MediaPlayer(controller: player)
           ],
         ));
   }
