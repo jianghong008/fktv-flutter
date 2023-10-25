@@ -35,6 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String serverIp = '127.0.0.1';
   String playerError = '';
   var playing = false;
+  bool busying = false;
   late AppHttpServer _server;
   var controller = VideoPlayerController.asset('');
   @override
@@ -59,11 +60,17 @@ class _MyHomePageState extends State<MyHomePage> {
         controller.removeListener(() {});
         controller.dispose();
         controller = _server.createPlayer(m.url);
+        busying = false;
         controller.addListener(() {
           setState(() {});
+          if(controller.value.position==controller.value.duration&&!busying){
+            busying = true;
+            onMusicChange(AppState.musics.isNotEmpty?AppState.next():null);
+            print('结束');
+          }
         });
         initPlayer();
-        // player.setMedia(m);
+        
       }
     });
   }

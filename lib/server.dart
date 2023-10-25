@@ -21,7 +21,10 @@ class AppHttpServer {
       try {
         await handle(req);
       } catch (e) {
+        print('错误---->');
         print(e);
+        req.response.statusCode = 500;
+        req.response.write('500');
       }
       req.response.close();
     });
@@ -59,6 +62,9 @@ class AppHttpServer {
         case 'mute':
           mute(req);
           break;
+        case 'pause':
+          pause(req);
+          break;
         default:
           req.response.write('404');
       }
@@ -66,8 +72,18 @@ class AppHttpServer {
       apiJson['code'] = 1;
       apiJson['msg'] = 'ok';
       return;
+    }else{
+      var temp = req.uri.path.split('/');
+      String f = temp.length>1?temp.last:'';
+      if(f.isEmpty){
+        f = 'index.html';
+      }
+      if(f.contains(RegExp(''))){
+
+      }
+      req.response.write('404');
     }
-    req.response.write('hello');
+    
   }
 
   VideoPlayerController createPlayer(String url) {
@@ -92,7 +108,7 @@ class AppHttpServer {
 
   add(HttpRequest req) async {
 
-    if (req.method == 'POST') {
+    if (req.method != 'GET') {
       
       var str = await utf8.decoder.bind(req).join();
       var data = json.decode(str);
@@ -103,8 +119,8 @@ class AppHttpServer {
           cover: data['cover'],
           url: data['url'],
           isVideo: true));
-      //只有一首直接播放
-      if(AppState.musics.length==1){
+      //没有正在播放直接播放歌曲
+      if(curPlayer!.value.isPlaying){
         onMusicChane.call(AppState.next());
       }
 
@@ -121,11 +137,23 @@ class AppHttpServer {
     }
   }
 
-  void remove(HttpRequest req) {}
+  void remove(HttpRequest req) {
+    if(req.method=='GET'){
+      req.response.statusCode = 405;
+      return;
+    }
+    var id = req.uri.queryParameters['id'];
+    print(id);
+    if(id==null){
+      req.response.statusCode = 404;
+      return;
+    }
+    AppState.removeById(int.parse(id));
+  }
   void list(HttpRequest req) {
-    apiJson['data'] = AppState.musics;
-    apiJson['code'] = 0;
-    req.response.write(apiJson);
+    apiJson['data'] = AppState.toMap();
+    apiJson['code'] = 200;
+    req.response.write(jsonEncode(apiJson));
   }
 
   void mute(HttpRequest req) {
@@ -140,6 +168,18 @@ class AppHttpServer {
     if (curPlayer != null) {
       volume = volume > 0 ? 0 : 1;
       curPlayer!.setVolume(volume);
+    }
+  }
+  void pause(HttpRequest req){
+    
+    if(curPlayer==null){
+      req.response.write('405');
+      return;
+    }
+    if(curPlayer!.value.isPlaying){
+      curPlayer!.pause();
+    }else{
+      curPlayer!.play();
     }
   }
 }

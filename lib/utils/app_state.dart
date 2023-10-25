@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 class Music {
@@ -16,8 +17,14 @@ class Music {
       required this.url,
       required this.isVideo,
       this.lyric});
-  Music clone(){
-    return Music(id: id, duration: duration, name: name, cover: cover, url: url, isVideo: isVideo);
+  Music clone() {
+    return Music(
+        id: id,
+        duration: duration,
+        name: name,
+        cover: cover,
+        url: url,
+        isVideo: isVideo);
   }
 }
 
@@ -31,7 +38,13 @@ class AppState {
   static void remove(Music m) {
     musics.remove(m);
   }
-
+  static void removeById(int id){
+    for (var m in musics) {
+      if(m.id==id){
+        musics.remove(m);
+      }
+    }
+  }
   static Music next() {
     if (musics.isEmpty) {
       throw Error();
@@ -39,5 +52,20 @@ class AppState {
     Music m = musics.first.clone();
     musics.removeAt(0);
     return m;
+  }
+
+  static toMap() {
+    var temp = [];
+    for (Music m in musics) {
+      temp.add({
+        'duration': m.duration,
+        'name': m.name,
+        'cover': m.cover,
+        'id': m.id,
+        'url': m.url,
+        'isVideo': m.isVideo
+      });
+    }
+    return temp;
   }
 }
