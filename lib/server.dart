@@ -22,9 +22,10 @@ class AppHttpServer {
         await handle(req);
       } catch (e) {
         print('错误---->');
-        print(e);
-        req.response.statusCode = 500;
-        req.response.write('500');
+        // print(e);
+        
+        // req.response.statusCode = 500;
+        // req.response.write('500');
       }
       req.response.close();
     });
