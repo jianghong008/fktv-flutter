@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 class Music {
   final int duration;
   final String name;
@@ -38,13 +35,15 @@ class AppState {
   static void remove(Music m) {
     musics.remove(m);
   }
-  static void removeById(int id){
+
+  static void removeById(int id) {
     for (var m in musics) {
-      if(m.id==id){
+      if (m.id == id) {
         musics.remove(m);
       }
     }
   }
+
   static Music next() {
     if (musics.isEmpty) {
       throw Error();
