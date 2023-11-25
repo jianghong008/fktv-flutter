@@ -40,7 +40,7 @@ class MediaPlayerController {
 
 class MediaPlayer extends StatefulWidget {
   final MediaPlayerController controller;
-  const MediaPlayer({super.key, required this.controller});
+  const MediaPlayer(this.controller, {super.key});
   @override
   State<MediaPlayer> createState() => MediaPlayerState();
 }

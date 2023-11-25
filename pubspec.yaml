@@ -39,6 +39,11 @@ dependencies:
   pretty_qr_code: ^3.0.0
   crypto: ^3.0.3
   flutter_lyric: ^2.0.4+6
+  async: ">=2.0.0 <3.0.0"
+  path: ^1.8.0
+  pedantic: ^1.11.1
+  encrypt: ^5.0.0
+  collection: ^1.15.0-nullsafety.4
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +55,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  test: ^1.16.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

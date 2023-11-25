@@ -1,9 +1,11 @@
+import 'package:fktv/player.dart';
 import 'package:fktv/qrcode.dart';
 import 'package:fktv/top_bar.dart';
 import 'package:fktv/utils/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'api.dart';
 import 'server.dart';
 
 void main() {
@@ -38,12 +40,14 @@ class _MyHomePageState extends State<MyHomePage> {
   bool busying = false;
   late AppHttpServer _server;
   var controller = VideoPlayerController.asset('');
+  var playerController = MediaPlayerController();
   @override
   void initState() {
     super.initState();
     _server = AppHttpServer();
     _server.onMusicChane = onMusicChange;
     _server.start().then((value) => setIp());
+    startApiServer();
   }
 
   void setIp() {
@@ -63,14 +67,14 @@ class _MyHomePageState extends State<MyHomePage> {
         busying = false;
         controller.addListener(() {
           setState(() {});
-          if(controller.value.position==controller.value.duration&&!busying){
+          if (controller.value.position == controller.value.duration &&
+              !busying) {
             busying = true;
-            onMusicChange(AppState.musics.isNotEmpty?AppState.next():null);
+            onMusicChange(AppState.musics.isNotEmpty ? AppState.next() : null);
             print('结束');
           }
         });
         initPlayer();
-        
       }
     });
   }
@@ -116,7 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            VideoPlayer(controller),
+            // VideoPlayer(controller),
+            MediaPlayer(playerController),
             music == null
                 ? (const Text(''))
                 : VideoProgressIndicator(
