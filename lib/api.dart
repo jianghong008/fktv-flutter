@@ -23,7 +23,6 @@ void _handleRequest(HttpRequest request) async {
           parameter: request.uri.queryParameters, cookie: request.cookies)
       .catchError((e, s) async {
     debugPrint(e.toString());
-    debugPrint(s.toString());
     return const Answer();
   });
   request.response.headers.add('Access-Control-Allow-Origin', '*');

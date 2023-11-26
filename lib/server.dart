@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:fktv/api/netease_cloud_music.dart';
 import 'package:video_player/video_player.dart';
 import 'utils/app_state.dart';
 import 'utils/net_utils.dart';
@@ -23,7 +24,7 @@ class AppHttpServer {
       } catch (e) {
         print('错误---->');
         // print(e);
-        
+
         // req.response.statusCode = 500;
         // req.response.write('500');
       }
@@ -35,9 +36,7 @@ class AppHttpServer {
     await _server.close();
   }
 
-  void init() {
-    //String lyric = await File('/sdcard/Documents/lyric.txt').readAsString();
-  }
+  Future<void> init() async {}
 
   handle(HttpRequest req) async {
     req.response.headers.contentType = ContentType.json;
@@ -73,18 +72,15 @@ class AppHttpServer {
       apiJson['code'] = 1;
       apiJson['msg'] = 'ok';
       return;
-    }else{
+    } else {
       var temp = req.uri.path.split('/');
-      String f = temp.length>1?temp.last:'';
-      if(f.isEmpty){
+      String f = temp.length > 1 ? temp.last : '';
+      if (f.isEmpty) {
         f = 'index.html';
       }
-      if(f.contains(RegExp(''))){
-
-      }
+      if (f.contains(RegExp(''))) {}
       req.response.write('404');
     }
-    
   }
 
   VideoPlayerController createPlayer(String url) {
@@ -108,9 +104,7 @@ class AppHttpServer {
   }
 
   add(HttpRequest req) async {
-
     if (req.method != 'GET') {
-      
       var str = await utf8.decoder.bind(req).join();
       var data = json.decode(str);
       AppState.add(Music(
@@ -121,7 +115,7 @@ class AppHttpServer {
           url: data['url'],
           isVideo: true));
       //没有正在播放直接播放歌曲
-      if(curPlayer!.value.isPlaying){
+      if (curPlayer!.value.isPlaying) {
         onMusicChane.call(AppState.next());
       }
 
@@ -132,25 +126,26 @@ class AppHttpServer {
     } else {
       apiJson['msg'] = '请求不允许';
       apiJson['code'] = 405;
-      
+
       req.response.statusCode = 405;
       req.response.write(apiJson);
     }
   }
 
   void remove(HttpRequest req) {
-    if(req.method=='GET'){
+    if (req.method == 'GET') {
       req.response.statusCode = 405;
       return;
     }
     var id = req.uri.queryParameters['id'];
     print(id);
-    if(id==null){
+    if (id == null) {
       req.response.statusCode = 404;
       return;
     }
     AppState.removeById(int.parse(id));
   }
+
   void list(HttpRequest req) {
     apiJson['data'] = AppState.toMap();
     apiJson['code'] = 200;
@@ -171,15 +166,15 @@ class AppHttpServer {
       curPlayer!.setVolume(volume);
     }
   }
-  void pause(HttpRequest req){
-    
-    if(curPlayer==null){
+
+  void pause(HttpRequest req) {
+    if (curPlayer == null) {
       req.response.write('405');
       return;
     }
-    if(curPlayer!.value.isPlaying){
+    if (curPlayer!.value.isPlaying) {
       curPlayer!.pause();
-    }else{
+    } else {
       curPlayer!.play();
     }
   }

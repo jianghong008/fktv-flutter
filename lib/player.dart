@@ -1,6 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_lyric/lyrics_reader.dart';
+import 'dart:io';
 
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+
+import 'commponents/lyrcs_reader.dart';
 import 'utils/app_state.dart';
 
 enum MediaPlayerControllerEvent { setMedia, setMute }
@@ -47,24 +50,22 @@ class MediaPlayer extends StatefulWidget {
 
 class MediaPlayerState extends State<MediaPlayer> {
   MediaPlayerState();
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.controller.music == null) {
-      return const Text(
-        '没有数据',
-        style: TextStyle(color: Colors.white),
-      );
-    }
-    if (widget.controller.music!.isVideo) {
-      return buildVideoPlayer();
+      // return const Text(
+      //   '没有数据',
+      //   style: TextStyle(color: Colors.white),
+      // );
+      return LyrcsReader();
     } else {
-      return buildAudioPlayer();
+      return buildVideoPlayer();
     }
   }
 
@@ -72,18 +73,6 @@ class MediaPlayerState extends State<MediaPlayer> {
     return const Text(
       'video',
       style: TextStyle(color: Colors.white),
-    );
-  }
-
-  Widget buildAudioPlayer() {
-    String s = widget.controller.music!.lyric ?? '';
-    var model = LyricsModelBuilder.create().bindLyricToMain(s).getModel();
-    print(model.lyrics);
-    return LyricsReader(
-      // lyricUi: lyricUi,
-      size: Size(double.infinity, MediaQuery.of(context).size.height / 2),
-      padding: const EdgeInsets.all(20),
-      model: model,
     );
   }
 }

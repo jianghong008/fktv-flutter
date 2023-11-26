@@ -8,7 +8,8 @@ Handler mv_detail = (query, cookie) {
 };
 // MV链接
 Handler mv_url = (query, cookie) {
-  final data = {'id': query!['mvid']};
+  final data = {'id': query!['id'], 'r': query['r'] ?? '1080'};
+  debugPrint(data.toString());
   return request(
       'POST', 'https://music.163.com/weapi/song/enhance/play/mv/url', data,
       crypto: Crypto.weapi, cookies: cookie);

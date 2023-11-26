@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:fktv/api/netease_cloud_music.dart';
 
 import 'answer.dart';
 import 'util/request.dart';
@@ -60,6 +61,7 @@ final handles = <String, Handler>{
   "/artists": artists,
   "/banner": banner,
   "/batch": batch,
+  "/check/music": check_music,
   "/captch/register": captch_register,
   "/captch/send": captch_send,
   "/captch/verify": captch_verify,

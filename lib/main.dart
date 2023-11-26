@@ -87,7 +87,8 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       music = null;
       playerError = '歌曲加载失败,请检查网络！';
-      print('播放错误');
+      debugPrint('播放错误');
+      debugPrint(e.toString());
     }
   }
 
