@@ -96,9 +96,9 @@ class MediaPlayerState extends State<MediaPlayer> {
     }
   }
 
-  void createVideoPlayer(String url) {
+  void createVideoPlayer(String url) async {
     try {
-      videoPontroller.dispose();
+      await videoPontroller.dispose();
       videoPontroller =
           VideoPlayerController.networkUrl(Uri.parse(httpsGenerate(url)));
       videoPontroller.addListener(() {
@@ -136,15 +136,15 @@ class MediaPlayerState extends State<MediaPlayer> {
     }
   }
 
-  void setMedia(Music m) {
+  void setMedia(Music m) async {
     isplaying = true;
     if (m.isVideo) {
-      audioPlayer.pause();
+      await audioPlayer.pause();
       lyrcController.emit(MyEventsEnum.setVisible, false);
       createVideoPlayer(m.url);
       //
     } else {
-      videoPontroller.pause();
+      await videoPontroller.pause();
       lyrcController.emit(MyEventsEnum.setVisible, true);
       lyrcController.emit(MyEventsEnum.setError, '');
       parseLrc(m.id);
