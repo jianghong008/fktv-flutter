@@ -1,41 +1,73 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../utils/events.dart';
+
+class LyrcsController extends MyEvents {
+  void setPosition(int m) {
+    emit(MyEventsEnum.setLyricPosition, m);
+  }
+
+  void setLyric(String m) {
+    emit(MyEventsEnum.setLyric, m);
+  }
+}
 
 class LyrcsData {
   String lyric = "";
-  Map<String, String> map = {};
-  load(String s) {
-    var reg = RegExp(r'[\d\D](?:[^\\n])*\\n', dotAll: true);
-    var timeReg = RegExp(r'\[\d{2}:\d{2}[\.\d]*\]');
+  int step = 600;
+  Map<double, String> map = {};
+  void load(String s) {
+    map.clear();
+    lyric = s;
+    var reg = RegExp(r'[\d\D](?:[^\\n\n])*(\\n|\n)', dotAll: true);
+    var timeReg = RegExp(r'\[\d{2}:\d{2}[\.\d]*\]', dotAll: true);
     var matches = reg.allMatches(s);
     for (var match in matches) {
       String line = match.group(0)!;
-      var m = timeReg.stringMatch(line);
-      if (m == null || m.isEmpty) {
-        continue;
+      var times = timeReg.allMatches(line);
+      for (var time in times) {
+        String m = time.group(0)!;
+        var ctx = line.replaceAll(m, '');
+        m = m.replaceAll(RegExp(r'[\[\]\n\\\n]', dotAll: true), '');
+        //time
+        List<String> str = m.split(':');
+        if (str.length != 2) {
+          continue;
+        }
+        double kt = double.parse(str[0]) * 60 + double.parse(str[1]);
+        String val = ctx.replaceAll(RegExp(r'[\n\\n]'), '');
+        val = val.replaceAll(timeReg, '');
+        map[kt] = val;
       }
-      var ctx = line.replaceAll(m, '');
-      m = m.replaceAll(RegExp(r'[\[\]]'), '');
-      map[m] = ctx.replaceAll(RegExp(r'[\n\\n]'), '');
     }
+    //map按key排序
+    map = Map.fromEntries(
+        map.entries.toList()..sort((e1, e2) => e1.key.compareTo(e2.key)));
   }
 
-  Widget render(String t) {
+  Widget render(int t) {
     var t1 = "";
     var t2 = "";
     var t3 = "";
-    var n = false;
+    List<String> arr = [];
     for (var m in map.entries) {
-      if (m.key == t) {
+      arr.add(m.value);
+
+      if (m.key * 1000 <= t + step) {
         t2 = m.value;
-        n = true;
-      } else if (n) {
-        t3 = m.value;
-      } else {
-        t1 = m.value;
       }
     }
+
+    if (t2 != '') {
+      int index = arr.indexOf(t2);
+
+      if (index > 0) {
+        t1 = arr[index - 1];
+      }
+      if (index < arr.length - 1) {
+        t3 = arr[index + 1];
+      }
+    }
+
     var style = const TextStyle(
         color: Color.fromARGB(255, 183, 183, 183), fontSize: 16);
     var text1 = Text(t1, style: style);
@@ -43,7 +75,7 @@ class LyrcsData {
         style: const TextStyle(
             color: Color.fromARGB(255, 255, 255, 255),
             fontWeight: FontWeight.bold,
-            fontSize: 18));
+            fontSize: 20));
     var text3 = Text(t3, style: style);
 
     return Row(
@@ -69,33 +101,67 @@ class LyrcsData {
 }
 
 class LyrcsReader extends StatefulWidget {
-  const LyrcsReader({super.key});
+  final LyrcsController controller;
+  const LyrcsReader(this.controller, {super.key});
   @override
   State<StatefulWidget> createState() => LyrcsReaderState();
 }
 
-class LyrcsReaderState extends State {
-  String lyric = "";
+class LyrcsReaderState extends State<LyrcsReader> {
   LyrcsData lrc = LyrcsData();
-  final MethodChannel channel = const MethodChannel('test');
+  bool visible = true;
+  int currentPosition = 0;
+  String error = '';
   @override
   void initState() {
     super.initState();
-    parseLrc();
+    widget.controller.on(MyEventsEnum.setVisible, setVisible);
+    widget.controller.on(MyEventsEnum.setLyric, setLyric);
+    widget.controller.on(MyEventsEnum.setLyricPosition, setPosition);
+    widget.controller.on(MyEventsEnum.setError, setError);
   }
 
-  void parseLrc() async {
-    var s = await File('sdcard/Documents/gc.txt').readAsString();
-    setState(() {});
+  void setError(String err) {
+    setState(() {
+      error = err;
+    });
+  }
+
+  void setVisible(bool val) {
+    setState(() {
+      visible = val;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.controller.off(MyEventsEnum.setLyric, setLyric);
+    widget.controller.off(MyEventsEnum.setLyricPosition, setPosition);
+  }
+
+  void setLyric(String s) {
     lrc.load(s);
-    var mp3 =
-        'http://m7.music.126.net/20231126173114/e42edbf761983cf4c57929cd31d7b71f/ymusic/57d6/ba78/a6d6/30ae02ed850a7fc4612d4111aada0817.mp3';
-    var res = await channel.invokeMethod('hello');
-    debugPrint(res.toString());
+    setPosition(1);
+  }
+
+  void setPosition(int m) {
+    setState(() {
+      currentPosition = m;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return lrc.render('00:46.353');
+    if (error != '') {
+      return Center(
+        child: Text(
+          error,
+          style: const TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    return visible ? lrc.render(currentPosition) : Container();
   }
 }

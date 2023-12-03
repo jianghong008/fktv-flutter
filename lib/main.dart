@@ -4,9 +4,9 @@ import 'package:fktv/top_bar.dart';
 import 'package:fktv/utils/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:video_player/video_player.dart';
 import 'api.dart';
 import 'server.dart';
+import 'utils/events.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'fktv',
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'FKTV'),
     );
   }
 }
@@ -38,13 +38,16 @@ class _MyHomePageState extends State<MyHomePage> {
   String playerError = '';
   var playing = false;
   bool busying = false;
+  MyEvents serverEvents = MyEvents();
   late AppHttpServer _server;
-  var controller = VideoPlayerController.asset('');
   var playerController = MediaPlayerController();
   @override
   void initState() {
     super.initState();
-    _server = AppHttpServer();
+    serverEvents.on(MyEventsEnum.setMute, setMute);
+    serverEvents.on(MyEventsEnum.setPlayerState, setPlayerState);
+    _server = AppHttpServer(serverEvents);
+
     _server.onMusicChane = onMusicChange;
     _server.start().then((value) => setIp());
     startApiServer();
@@ -60,54 +63,24 @@ class _MyHomePageState extends State<MyHomePage> {
     print('切歌---->');
     setState(() {
       music = m;
-      if (m != null) {
-        controller.removeListener(() {});
-        controller.dispose();
-        controller = _server.createPlayer(m.url);
-        busying = false;
-        controller.addListener(() {
-          setState(() {});
-          if (controller.value.position == controller.value.duration &&
-              !busying) {
-            busying = true;
-            onMusicChange(AppState.musics.isNotEmpty ? AppState.next() : null);
-            print('结束');
-          }
-        });
-        initPlayer();
-      }
     });
-  }
-
-  void initPlayer() async {
-    try {
-      await controller.initialize();
-      controller.play();
-      playerError = '';
-    } catch (e) {
-      music = null;
-      playerError = '歌曲加载失败,请检查网络！';
-      debugPrint('播放错误');
-      debugPrint(e.toString());
+    if (m != null) {
+      playerController.setMedia(m);
     }
   }
 
-  void play() {
-    if (playing) {
-      controller.pause();
-    } else {
-      controller.play();
-    }
-    setState(() {
-      playing = !playing;
-    });
+  void setMute(double val) {
+    playerController.setVolume(val);
+  }
+
+  void setPlayerState(bool? sta) {
+    playerController.setPlayerState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
-    controller.dispose();
+    playerController.dispose();
     _server.stop();
   }
 
@@ -121,15 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            // VideoPlayer(controller),
             MediaPlayer(playerController),
-            music == null
-                ? (const Text(''))
-                : VideoProgressIndicator(
-                    controller,
-                    allowScrubbing: false,
-                    padding: const EdgeInsets.only(top: 0),
-                  ),
             MyTopBar(
               title: playerTitle,
             ),

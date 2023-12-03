@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:fktv/api/netease_cloud_music.dart';
-import 'package:video_player/video_player.dart';
 import 'utils/app_state.dart';
+import 'utils/events.dart';
 import 'utils/net_utils.dart';
 
 var apiJson = {'code': 0, 'msg': 'ok', 'data': null};
 
 class AppHttpServer {
+  MyEvents events;
+  AppHttpServer(this.events);
   late final HttpServer _server;
   String ip = '127.0.0.1';
   late Function onMusicChane;
-  VideoPlayerController? curPlayer;
   double volume = 1;
   Future<void> start() async {
     init();
@@ -23,7 +23,7 @@ class AppHttpServer {
         await handle(req);
       } catch (e) {
         print('错误---->');
-        // print(e);
+        print(e);
 
         // req.response.statusCode = 500;
         // req.response.write('500');
@@ -83,13 +83,6 @@ class AppHttpServer {
     }
   }
 
-  VideoPlayerController createPlayer(String url) {
-    var player =
-        VideoPlayerController.networkUrl(Uri.parse(httpsGenerate(url)));
-    curPlayer = player;
-    return player;
-  }
-
   void next(HttpRequest req) {
     try {
       // init();
@@ -113,11 +106,7 @@ class AppHttpServer {
           name: data['name'],
           cover: data['cover'],
           url: data['url'],
-          isVideo: true));
-      //没有正在播放直接播放歌曲
-      if (curPlayer!.value.isPlaying) {
-        onMusicChane.call(AppState.next());
-      }
+          isVideo: data['isVideo']));
 
       print('添加成功');
       apiJson['code'] = 200;
@@ -138,7 +127,7 @@ class AppHttpServer {
       return;
     }
     var id = req.uri.queryParameters['id'];
-    print(id);
+
     if (id == null) {
       req.response.statusCode = 404;
       return;
@@ -161,21 +150,11 @@ class AppHttpServer {
       apiJson['msg'] = '请求不允许';
       req.response.write(apiJson);
     }
-    if (curPlayer != null) {
-      volume = volume > 0 ? 0 : 1;
-      curPlayer!.setVolume(volume);
-    }
+    volume = volume > 0 ? 0 : 1;
+    events.emit(MyEventsEnum.setMute, volume);
   }
 
   void pause(HttpRequest req) {
-    if (curPlayer == null) {
-      req.response.write('405');
-      return;
-    }
-    if (curPlayer!.value.isPlaying) {
-      curPlayer!.pause();
-    } else {
-      curPlayer!.play();
-    }
+    events.emit(MyEventsEnum.setPlayerState, null);
   }
 }
