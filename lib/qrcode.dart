@@ -12,7 +12,7 @@ class ScanQrcode extends StatefulWidget {
 
 class ScanQrcodeState extends State<ScanQrcode> {
   var qrImage;
-  final String webRemote = 'http://8.219.63.91:8849/';
+  final String webRemote = 'https://jhpw.gitee.io/fktv-webui/';
   @override
   void initState() {
     super.initState();

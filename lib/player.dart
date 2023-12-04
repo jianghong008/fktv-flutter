@@ -98,22 +98,27 @@ class MediaPlayerState extends State<MediaPlayer> {
 
   void createVideoPlayer(String url) async {
     try {
+      videoPontroller.removeListener(onVideoChange);
       await videoPontroller.dispose();
-      videoPontroller =
-          VideoPlayerController.networkUrl(Uri.parse(httpsGenerate(url)));
-      videoPontroller.addListener(() {
-        onPositionChange(videoPontroller.value.position.inMilliseconds);
-        if (videoPontroller.value.position == videoPontroller.value.duration) {
-          isplaying = false;
-          onMusicChange(AppState.musics.isNotEmpty ? AppState.next() : null);
-          print('结束');
-        }
-      });
+      videoPontroller = VideoPlayerController.networkUrl(
+          Uri.parse(httpsGenerate(url)),
+          videoPlayerOptions:
+              VideoPlayerOptions(allowBackgroundPlayback: true));
+      videoPontroller.addListener(onVideoChange);
       videoPontroller.initialize();
       videoPontroller.play();
     } catch (e) {
       debugPrint('播放错误');
       debugPrint(e.toString());
+    }
+  }
+
+  void onVideoChange() {
+    onPositionChange(videoPontroller.value.position.inMilliseconds);
+    if (videoPontroller.value.position == videoPontroller.value.duration) {
+      isplaying = false;
+      onMusicChange(AppState.musics.isNotEmpty ? AppState.next() : null);
+      print('结束');
     }
   }
 
@@ -123,7 +128,10 @@ class MediaPlayerState extends State<MediaPlayer> {
       return;
     }
     if (music!.isVideo) {
-      //
+      var dur = videoPontroller.value.duration;
+      setState(() {
+        preccent = t / dur.inMilliseconds;
+      });
     }
     if (music!.isVideo == false) {
       var dur = await audioPlayer.getDuration();
@@ -138,6 +146,7 @@ class MediaPlayerState extends State<MediaPlayer> {
 
   void setMedia(Music m) async {
     isplaying = true;
+    print('播放：${m.id}');
     if (m.isVideo) {
       await audioPlayer.pause();
       lyrcController.emit(MyEventsEnum.setVisible, false);
@@ -145,6 +154,7 @@ class MediaPlayerState extends State<MediaPlayer> {
       //
     } else {
       await videoPontroller.pause();
+
       lyrcController.emit(MyEventsEnum.setVisible, true);
       lyrcController.emit(MyEventsEnum.setError, '');
       parseLrc(m.id);
@@ -175,23 +185,22 @@ class MediaPlayerState extends State<MediaPlayer> {
     if (music == null) {
       msg = '没有数据';
     }
-
+    Size size = MediaQuery.of(context).size;
     return Stack(
       children: [
-        buildProgress(context),
         Center(
             child: Text(
           msg,
           style: const TextStyle(color: Colors.white),
         )),
         buildAudioPlayer(),
-        buildVideoPlayer(),
+        buildVideoPlayer(size),
+        buildProgress(size),
       ],
     );
   }
 
-  Widget buildProgress(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+  Widget buildProgress(Size size) {
     return Stack(children: [
       SizedBox(
         width: size.width * preccent,
@@ -205,14 +214,15 @@ class MediaPlayerState extends State<MediaPlayer> {
     return LyrcsReader(lyrcController);
   }
 
-  Widget buildVideoPlayer() {
+  Widget buildVideoPlayer(Size size) {
     if (music == null) {
       return const SizedBox();
     }
-    if (music!.isVideo) {
-      return VideoPlayer(videoPontroller);
-    } else {
+
+    if (music!.isVideo == false) {
       return const SizedBox();
     }
+
+    return VideoPlayer(videoPontroller);
   }
 }

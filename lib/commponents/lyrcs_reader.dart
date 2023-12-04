@@ -13,6 +13,7 @@ class LyrcsController extends MyEvents {
 
 class LyrcsData {
   String lyric = "";
+  String lastLine = "";
   int step = 600;
   Map<double, String> map = {};
   void load(String s) {
@@ -56,10 +57,12 @@ class LyrcsData {
         t2 = m.value;
       }
     }
-
+    if (t2 == '') {
+      t2 = lastLine;
+    }
     if (t2 != '') {
       int index = arr.indexOf(t2);
-
+      lastLine = t2;
       if (index > 0) {
         t1 = arr[index - 1];
       }
