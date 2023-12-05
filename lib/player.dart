@@ -146,14 +146,25 @@ class MediaPlayerState extends State<MediaPlayer> {
 
   void setMedia(Music m) async {
     isplaying = true;
+
     print('播放：${m.id}');
     if (m.isVideo) {
-      await audioPlayer.pause();
+      audioPlayer.stop();
       lyrcController.emit(MyEventsEnum.setVisible, false);
       createVideoPlayer(m.url);
-      //
+      //先创建再显示
+      setState(() {
+        music = m;
+        preccent = 0;
+      });
     } else {
+      setState(() {
+        music = m;
+        preccent = 0;
+      });
+      // 先隐藏再销毁
       await videoPontroller.pause();
+      videoPontroller.dispose();
 
       lyrcController.emit(MyEventsEnum.setVisible, true);
       lyrcController.emit(MyEventsEnum.setError, '');
@@ -163,7 +174,6 @@ class MediaPlayerState extends State<MediaPlayer> {
         lyrcController.emit(MyEventsEnum.setError, '播放失败');
       });
     }
-    music = m;
   }
 
   void parseLrc(int id) async {
@@ -201,9 +211,10 @@ class MediaPlayerState extends State<MediaPlayer> {
   }
 
   Widget buildProgress(Size size) {
+    double w = size.width * preccent;
     return Stack(children: [
       SizedBox(
-        width: size.width * preccent,
+        width: w.isNaN ? 0 : w,
         height: 5,
         child: const ColoredBox(color: Colors.red),
       )
@@ -216,13 +227,17 @@ class MediaPlayerState extends State<MediaPlayer> {
 
   Widget buildVideoPlayer(Size size) {
     if (music == null) {
-      return const SizedBox();
+      return Container();
     }
 
-    if (music!.isVideo == false) {
-      return const SizedBox();
+    if (music!.isVideo == false ||
+        videoPontroller.value.isInitialized == false) {
+      return Container();
     }
 
-    return VideoPlayer(videoPontroller);
+    return Center(
+        child: AspectRatio(
+            aspectRatio: videoPontroller.value.aspectRatio,
+            child: VideoPlayer(videoPontroller)));
   }
 }

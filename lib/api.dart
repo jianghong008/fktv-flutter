@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'api/netease_cloud_music.dart';
 
-Future<HttpServer> startApiServer({address = "127.0.0.1", int port = 8849}) {
-  return HttpServer.bind(address, port, shared: true).then((server) {
+Future<HttpServer> startApiServer({int port = 8849}) {
+  var address = '127.0.0.1';
+  return HttpServer.bind(InternetAddress.anyIPv4, port, shared: true)
+      .then((server) {
     debugPrint("start listen at: http://$address:$port");
     server.listen((request) {
       _handleRequest(request);

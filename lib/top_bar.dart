@@ -11,10 +11,19 @@ class MyTopBar extends StatefulWidget {
 class TopBarState extends State<MyTopBar> {
   @override
   Widget build(BuildContext context) {
+    String title = widget.title;
     return Padding(
       padding: const EdgeInsets.only(top: 30),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(widget.title, style: const TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold))
+        Wrap(
+          children: [
+            Text(title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold))
+          ],
+        )
       ]),
     );
   }
